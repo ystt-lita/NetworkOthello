@@ -11,7 +11,6 @@ public class OthelloCell : MonoBehaviour, IPointerClickHandler
     Image cell;
     public int x, y;
     public int[] reversible;
-    Text[] revText;
     // Start is called before the first frame update
     void Awake()
     {
@@ -22,7 +21,6 @@ public class OthelloCell : MonoBehaviour, IPointerClickHandler
         board = transform.parent.GetComponent<OthelloGame>();
         cell = transform.Find("Disk").GetComponent<Image>();
         isBlack = false;
-        revText = transform.GetComponentsInChildren<Text>();
     }
     public bool isAlive()
     {
@@ -44,10 +42,6 @@ public class OthelloCell : MonoBehaviour, IPointerClickHandler
     // Update is called once per frame
     void Update()
     {
-    }
-    public void SetRevText()
-    {
-        for (int i = 0; i < 8; i++) revText[i].text = reversible[i].ToString();
     }
     public void OnPointerClick(PointerEventData p)
     {

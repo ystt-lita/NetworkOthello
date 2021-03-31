@@ -103,16 +103,13 @@ public class NetworkManager : MonoBehaviour, WYUN.ILobbyCallback, WYUN.IRoomCall
             Debug.Log(memberList.members[1].name);
             if (memberList.members[0].name.Equals(Core.settings.userName))
             {
-                disks.SetColor(true);
                 myInfo.ChangeTurn();
                 encounterInfo.setName(memberList.members[1].name);
             }
             else
             {
-                disks.SetColor(false);
                 encounterInfo.ChangeTurn();
                 encounterInfo.setName(memberList.members[0].name);
-                Debug.Log(memberList.members[0].name + " is host");
             }
             board.state = GameState.Uninit;
         }

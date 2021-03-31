@@ -55,6 +55,7 @@ public class OthelloGame : MonoBehaviour
         cells[4, 4].Put(false);
         cells[3, 4].Put(true);
         cells[4, 3].Put(true);
+        counter.SetCount(2, 4);
     }
 
     // Update is called once per frame
@@ -64,6 +65,14 @@ public class OthelloGame : MonoBehaviour
         {
             case GameState.Uninit:
                 init();
+                if (myInfo.turn)
+                {
+                    counter.SetColor(true);
+                }
+                else
+                {
+                    counter.SetColor(false);
+                }
                 state = GameState.Init;
                 break;
             case GameState.Init:
@@ -463,10 +472,6 @@ public class OthelloGame : MonoBehaviour
                     else { count = 0; }
                 }
             }
-        }
-        foreach (var cell in cells)
-        {
-            cell.SetRevText();
         }
         Debug.Log("checked:" + (pass ? " " : "not ") + "pass");
         return pass;
