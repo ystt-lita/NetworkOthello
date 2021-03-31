@@ -12,7 +12,8 @@ public enum GameState
     Init,
     WaitingPlayer,
     EncounterClicked,
-    Num
+    EncounterPassed,
+    None
 }
 
 public class OthelloGame : MonoBehaviour
@@ -22,22 +23,22 @@ public class OthelloGame : MonoBehaviour
     [SerializeField]
     DiskCount counter;
     [SerializeField]
-    GameObject cellPrefab;
+    GameObject cellPrefab, WinPanel, LosePanel;
     OthelloCell[,] cells;
-    public int clickedx,clickedy;
+    public int clickedx, clickedy;
     // Start is called before the first frame update
 
     public GameState state;
     void Start()
     {
-        state = GameState.Uninit;
+        state = GameState.None;
         cells = new OthelloCell[8, 8];
         for (int i = 0; i < 8; i++)
         {
             for (int j = 0; j < 8; j++)
             {
                 cells[i, j] = Instantiate(cellPrefab, transform).GetComponent<OthelloCell>();
-                cells[i, j].x = i; cells[i, j].y = j;
+                cells[i, j].x = j; cells[i, j].y = i;
             }
         }
         counter.SetCount(2, 4);
@@ -50,10 +51,10 @@ public class OthelloGame : MonoBehaviour
     }
     public void init()
     {
-        cells[3, 3].Put(true);
-        cells[4, 4].Put(true);
-        cells[3, 4].Put(false);
-        cells[4, 3].Put(false);
+        cells[3, 3].Put(false);
+        cells[4, 4].Put(false);
+        cells[3, 4].Put(true);
+        cells[4, 3].Put(true);
     }
 
     // Update is called once per frame
@@ -61,348 +62,464 @@ public class OthelloGame : MonoBehaviour
     {
         switch (state)
         {
-            case GameState.Init:
+            case GameState.Uninit:
                 init();
+                state = GameState.Init;
+                break;
+            case GameState.Init:
+                CheckAll(counter.isBlack);
                 state = GameState.WaitingPlayer;
                 break;
-                case GameState.EncounterClicked:
-                EncounterClick(clickedx,clickedy);
-                state=GameState.WaitingPlayer;
+            case GameState.EncounterClicked:
+                EncounterClick(clickedx, clickedy);
+                state = GameState.WaitingPlayer;
+                break;
+            case GameState.EncounterPassed:
+                EncounterPass();
+                state = GameState.WaitingPlayer;
                 break;
         }
-    }
-    int Check(int x, int y, bool color)
-    {
-        Debug.Log(String.Format("{0},{1},{2}", x, y, color));
-        int count = 0, tmpCount = 0;
-        for (int i = x - 1, j = y - 1; i > 0 && j > 0; i--, j--)
-        {
-            //左上確認
-            if (!cells[i, j].isAlive())
-            {
-                Debug.Log("左上空白");
-                break;
-            }
-            if (cells[i, j].isBlack == color)
-            {
-                Debug.Log("左上同色");
-                count += tmpCount;
-                break;
-            }
-            tmpCount++;
-        }
-        tmpCount = 0;
-        for (int i = x - 1, j = y; i > 0; i--)
-        {
-            //左確認
-            if (!cells[i, j].isAlive())
-            {
-                Debug.Log("上空白");
-                break;
-            }
-            if (cells[i, j].isBlack == color)
-            {
-                Debug.Log("上同色");
-                count += tmpCount;
-                break;
-            }
-            tmpCount++;
-        }
-        tmpCount = 0;
-        for (int i = x - 1, j = y + 1; i > 0 && j < 8; i--, j++)
-        {
-            //左下確認
-            if (!cells[i, j].isAlive())
-            {
-                Debug.Log("右上空白");
-                break;
-            }
-            if (cells[i, j].isBlack == color)
-            {
-                Debug.Log("右上同色");
-                count += tmpCount;
-                break;
-            }
-            tmpCount++;
-        }
-        tmpCount = 0;
-        for (int i = x, j = y + 1; j < 8; j++)
-        {
-            //下確認
-            if (!cells[i, j].isAlive())
-            {
-                Debug.Log("右空白");
-                break;
-            }
-            if (cells[i, j].isBlack == color)
-            {
-                Debug.Log("右同色");
-                count += tmpCount;
-                break;
-            }
-            tmpCount++;
-        }
-        tmpCount = 0;
-        for (int i = x + 1, j = y + 1; i < 8 && j < 8; i++, j++)
-        {
-            //右下確認
-            if (!cells[i, j].isAlive())
-            {
-                Debug.Log("右下空白");
-                break;
-            }
-            if (cells[i, j].isBlack == color)
-            {
-                Debug.Log("右下同色");
-                count += tmpCount;
-                break;
-            }
-            tmpCount++;
-        }
-        tmpCount = 0;
-        for (int i = x + 1, j = y; i < 8; i++)
-        {
-            //右確認
-            if (!cells[i, j].isAlive())
-            {
-                Debug.Log("下空白");
-                break;
-            }
-            if (cells[i, j].isBlack == color)
-            {
-                Debug.Log("下同色");
-                count += tmpCount;
-                break;
-            }
-            tmpCount++;
-        }
-        tmpCount = 0;
-        for (int i = x + 1, j = y - 1; i < 8 && j > 0; i++, j--)
-        {
-            //右上確認
-            if (!cells[i, j].isAlive())
-            {
-                Debug.Log("左下空白");
-                break;
-            }
-            if (cells[i, j].isBlack == color)
-            {
-                Debug.Log("左下同色");
-                count += tmpCount;
-                break;
-            }
-            tmpCount++;
-        }
-        tmpCount = 0;
-        for (int i = x, j = y - 1; j > 0; j--)
-        {
-            //上確認
-            if (!cells[i, j].isAlive())
-            {
-                Debug.Log("左空白");
-                break;
-            }
-            if (cells[i, j].isBlack == color)
-            {
-                Debug.Log("左同色");
-                count += tmpCount;
-                break;
-            }
-            tmpCount++;
-        }
-        return count;
     }
     void Flip(int x, int y, bool color)
     {
-        int tmpCount = 0;
-        for (int i = x - 1, j = y - 1; i > 0 && j > 0; i--, j--)
+        int flipped = 0;
+        cells[y, x].Put(color);
+        Debug.Log(string.Format("{0},{1},{2},{3},{4},{5},{6},{7}",
+        cells[y, x].reversible[0], cells[y, x].reversible[1], cells[y, x].reversible[2],
+        cells[y, x].reversible[3], cells[y, x].reversible[4], cells[y, x].reversible[5],
+        cells[y, x].reversible[6], cells[y, x].reversible[7]));
+        for (int k = cells[y, x].reversible[0]; k > 0; k--)
         {
-            //左上確認
-            if (!cells[i, j].isAlive())
-            {
-                Debug.Log("左上空白");
-                break;
-            }
-            if (cells[i, j].isBlack == color)
-            {
-                Debug.Log("左上同色");
-                for (i++, j++; i != x || j != y; i++, j++)
-                {
-                    cells[i, j].Reverse();
-                }
-                cells[x, y].Put(color);
-                break;
-            }
-            tmpCount++;
+            flipped++;
+            cells[y + k, x + k].Reverse();
         }
-        tmpCount = 0;
-        for (int i = x - 1, j = y; i > 0; i--)
+        for (int k = cells[y, x].reversible[1]; k > 0; k--)
         {
-            //左確認
-            if (!cells[i, j].isAlive())
-            {
-                Debug.Log("上空白");
-                break;
-            }
-            if (cells[i, j].isBlack == color)
-            {
-                Debug.Log("上同色");
-                for (i++; i != x; i++)
-                {
-                    cells[i, j].Reverse();
-                }
-                cells[x, y].Put(color);
-                break;
-            }
-            tmpCount++;
+            flipped++;
+            cells[y, x + k].Reverse();
         }
-        tmpCount = 0;
-        for (int i = x - 1, j = y + 1; i > 0 && j < 8; i--, j++)
+        for (int k = cells[y, x].reversible[2]; k > 0; k--)
         {
-            //左下確認
-            if (!cells[i, j].isAlive())
-            {
-                Debug.Log("右上空白");
-                break;
-            }
-            if (cells[i, j].isBlack == color)
-            {
-                Debug.Log("右上同色");
-                for (i++, j--; i != x || j != y; i++, j--)
-                {
-                    cells[i, j].Reverse();
-                }
-                cells[x, y].Put(color);
-                break;
-            }
-            tmpCount++;
+            flipped++;
+            cells[y - k, x + k].Reverse();
         }
-        tmpCount = 0;
-        for (int i = x, j = y + 1; j < 8; j++)
+        for (int k = cells[y, x].reversible[3]; k > 0; k--)
         {
-            //下確認
-            if (!cells[i, j].isAlive())
-            {
-                Debug.Log("右空白");
-                break;
-            }
-            if (cells[i, j].isBlack == color)
-            {
-                Debug.Log("右同色");
-                for (j--; j != y; j--)
-                {
-                    cells[i, j].Reverse();
-                }
-                cells[x, y].Put(color);
-                break;
-            }
-            tmpCount++;
+            flipped++;
+            cells[y - k, x].Reverse();
         }
-        tmpCount = 0;
-        for (int i = x + 1, j = y + 1; i < 8 && j < 8; i++, j++)
+        for (int k = cells[y, x].reversible[4]; k > 0; k--)
         {
-            //右下確認
-            if (!cells[i, j].isAlive())
-            {
-                Debug.Log("右下空白");
-                break;
-            }
-            if (cells[i, j].isBlack == color)
-            {
-                Debug.Log("右下同色");
-                for (i--, j--; i != x || j != y; i--, j--)
-                {
-                    cells[i, j].Reverse();
-                }
-                cells[x, y].Put(color);
-                break;
-            }
-            tmpCount++;
+            flipped++;
+            cells[y - k, x - k].Reverse();
         }
-        tmpCount = 0;
-        for (int i = x + 1, j = y; i < 8; i++)
+        for (int k = cells[y, x].reversible[5]; k > 0; k--)
         {
-            //右確認
-            if (!cells[i, j].isAlive())
-            {
-                Debug.Log("下空白");
-                break;
-            }
-            if (cells[i, j].isBlack == color)
-            {
-                Debug.Log("下同色");
-                for (i--; i != x; i--)
-                {
-                    cells[i, j].Reverse();
-                }
-                cells[x, y].Put(color);
-                break;
-            }
-            tmpCount++;
+            flipped++;
+            cells[y, x - k].Reverse();
         }
-        tmpCount = 0;
-        for (int i = x + 1, j = y - 1; i < 8 && j > 0; i++, j--)
+        for (int k = cells[y, x].reversible[6]; k > 0; k--)
         {
-            //右上確認
-            if (!cells[i, j].isAlive())
-            {
-                Debug.Log("左下空白");
-                break;
-            }
-            if (cells[i, j].isBlack == color)
-            {
-                Debug.Log("左下同色");
-                for (i--, j++; i != x || j != y; i--, j++)
-                {
-                    cells[i, j].Reverse();
-                }
-                cells[x, y].Put(color);
-                break;
-            }
-            tmpCount++;
+            flipped++;
+            cells[y + k, x - k].Reverse();
         }
-        tmpCount = 0;
-        for (int i = x, j = y - 1; j > 0; j--)
+        for (int k = cells[y, x].reversible[7]; k > 0; k--)
         {
-            //上確認
-            if (!cells[i, j].isAlive())
-            {
-                Debug.Log("左空白");
-                break;
-            }
-            if (cells[i, j].isBlack == color)
-            {
-                Debug.Log("左同色");
-                for (j++; j != y; j++)
-                {
-                    cells[i, j].Reverse();
-                }
-                cells[x, y].Put(color);
-                break;
-            }
-            tmpCount++;
+            flipped++;
+            cells[y + k, x].Reverse();
         }
+        if (color == counter.isBlack)
+        {
+            counter.SetCount(counter.count + flipped + 1, counter.allCount + 1);
+        }
+        else
+        {
+            counter.SetCount(counter.count - flipped, counter.allCount + 1);
+        }
+    }
+    bool CheckAll(bool color)
+    {
+        int x = 0;
+        int y = 0;
+        int count;
+        bool pass = true, c = false;
+        foreach (var item in cells)
+        {
+            item.reversible = new int[8] { 0, 0, 0, 0, 0, 0, 0, 0 };
+        }
+        for (; x < 8; x++)
+        {//上の行
+            count = 0; c = false;
+            for (int i = y, j = x; i < 8; i++)
+            {//下向き走査
+                if (cells[i, j].isAlive())
+                {
+                    if (cells[i, j].isBlack == color)
+                    {
+                        c = true; count = 0;
+                    }
+                    else if (c) { count++; }
+                }
+                else
+                {
+                    if (c)
+                    {
+                        cells[i, j].reversible[3] = count;
+                        if (count != 0)
+                        {
+                            pass = false;
+                        }
+                        c = false;
+                    }
+                    else { count = 0; }
+                }
+            }
+
+            if (x == 7) break;
+            count = 0; c = false;
+            for (int i = y, j = x; i < 8 && j < 8; i++, j++)
+            {//右下向き走査
+                if (cells[i, j].isAlive())
+                {
+                    if (cells[i, j].isBlack == color)
+                    {
+                        c = true; count = 0;
+                    }
+                    else if (c) { count++; }
+                }
+                else
+                {
+                    if (c)
+                    {
+                        cells[i, j].reversible[4] = count;
+                        if (count != 0)
+                        {
+                            pass = false;
+                        }
+                        c = false;
+                    }
+                    else { count = 0; }
+                }
+            }
+            count = 0; c = false;
+            for (int i = y, j = x; i < 8 && j >= 0; i++, j--)
+            {//左下向き走査
+                if (cells[i, j].isAlive())
+                {
+                    if (cells[i, j].isBlack == color)
+                    {
+                        c = true; count = 0;
+                    }
+                    else if (c) { count++; }
+                }
+                else
+                {
+                    if (c)
+                    {
+                        cells[i, j].reversible[2] = count;
+                        if (count != 0)
+                        {
+                            pass = false;
+                        }
+                        c = false;
+                    }
+                    else { count = 0; }
+                }
+            }
+        }
+        for (x--; y < 8; y++)
+        {//右の列
+            count = 0; c = false;
+            for (int i = y, j = x; j >= 0; j--)
+            {//左向き走査
+                if (cells[i, j].isAlive())
+                {
+                    if (cells[i, j].isBlack == color)
+                    {
+                        c = true; count = 0;
+                    }
+                    else if (c) { count++; }
+                }
+                else
+                {
+                    if (c)
+                    {
+                        cells[i, j].reversible[1] = count;
+                        if (count != 0)
+                        {
+                            pass = false;
+                        }
+                        c = false;
+                    }
+                    else { count = 0; }
+                }
+            }
+            if (y == 7) break;
+            count = 0; c = false;
+            for (int i = y, j = x; i < 8 && j >= 0; i++, j--)
+            {//左下向き走査
+                if (cells[i, j].isAlive())
+                {
+                    if (cells[i, j].isBlack == color)
+                    {
+                        c = true; count = 0;
+                    }
+                    else if (c) { count++; }
+                }
+                else
+                {
+                    if (c)
+                    {
+                        cells[i, j].reversible[2] = count;
+                        if (count != 0)
+                        {
+                            pass = false;
+                        }
+                        c = false;
+                    }
+                    else { count = 0; }
+                }
+            }
+            count = 0; c = false;
+            for (int i = y, j = x; i >= 0 && j >= 0; i--, j--)
+            {//左上向き走査
+                if (cells[i, j].isAlive())
+                {
+                    if (cells[i, j].isBlack == color)
+                    {
+                        c = true; count = 0;
+                    }
+                    else if (c) { count++; }
+                }
+                else
+                {
+                    if (c)
+                    {
+                        cells[i, j].reversible[0] = count;
+                        if (count != 0)
+                        {
+                            pass = false;
+                        }
+                        c = false;
+                    }
+                    else { count = 0; }
+                }
+            }
+        }
+        for (y--; x >= 0; x--)
+        {//下の行
+            count = 0; c = false;
+            for (int i = y, j = x; i >= 0; i--)
+            {//上向き走査
+                if (cells[i, j].isAlive())
+                {
+                    if (cells[i, j].isBlack == color)
+                    {
+                        c = true; count = 0;
+                    }
+                    else if (c) { count++; }
+                }
+                else
+                {
+                    if (c)
+                    {
+                        cells[i, j].reversible[7] = count;
+                        if (count != 0)
+                        {
+                            pass = false;
+                        }
+                        c = false;
+                    }
+                    else { count = 0; }
+                }
+            }
+            if (x == 0) break;
+            count = 0; c = false;
+            for (int i = y, j = x; i >= 0 && j < 8; i--, j++)
+            {//右上向き走査
+                if (cells[i, j].isAlive())
+                {
+                    if (cells[i, j].isBlack == color)
+                    {
+                        c = true; count = 0;
+                    }
+                    else if (c) { count++; }
+                }
+                else
+                {
+                    if (c)
+                    {
+                        cells[i, j].reversible[6] = count;
+                        if (count != 0)
+                        {
+                            pass = false;
+                        }
+                        c = false;
+                    }
+                    else { count = 0; }
+                }
+            }
+            count = 0; c = false;
+            for (int i = y, j = x; i >= 0 && j >= 0; i--, j--)
+            {//左上向き走査
+                if (cells[i, j].isAlive())
+                {
+                    if (cells[i, j].isBlack == color)
+                    {
+                        c = true; count = 0;
+                    }
+                    else if (c) { count++; }
+                }
+                else
+                {
+                    if (c)
+                    {
+                        cells[i, j].reversible[0] = count;
+                        if (count != 0)
+                        {
+                            pass = false;
+                        }
+                        c = false;
+                    }
+                    else { count = 0; }
+                }
+            }
+        }
+        for (x++; y >= 0; y--)
+        {//左の列
+            count = 0; c = false;
+            for (int i = y, j = x; j < 8; j++)
+            {//右向き走査
+                if (cells[i, j].isAlive())
+                {
+                    if (cells[i, j].isBlack == color)
+                    {
+                        c = true; count = 0;
+                    }
+                    else if (c) { count++; }
+                }
+                else
+                {
+                    if (c)
+                    {
+                        cells[i, j].reversible[5] = count;
+                        if (count != 0)
+                        {
+                            pass = false;
+                        }
+                        c = false;
+                    }
+                    else { count = 0; }
+                }
+            }
+            if (y == 0) break;
+            count = 0; c = false;
+            for (int i = y, j = x; i >= 0 && j < 8; i--, j++)
+            {//右上向き走査
+                if (cells[i, j].isAlive())
+                {
+                    if (cells[i, j].isBlack == color)
+                    {
+                        c = true; count = 0;
+                    }
+                    else if (c) { count++; }
+                }
+                else
+                {
+                    if (c)
+                    {
+                        cells[i, j].reversible[6] = count;
+                        if (count != 0)
+                        {
+                            pass = false;
+                        }
+                        c = false;
+                    }
+                    else { count = 0; }
+                }
+            }
+            count = 0; c = false;
+            for (int i = y, j = x; i < 8 && j < 8; i++, j++)
+            {//右下向き走査
+                if (cells[i, j].isAlive())
+                {
+                    if (cells[i, j].isBlack == color)
+                    {
+                        c = true; count = 0;
+                    }
+                    else if (c) { count++; }
+                }
+                else
+                {
+                    if (c)
+                    {
+                        cells[i, j].reversible[4] = count;
+                        if (count != 0)
+                        {
+                            pass = false;
+                        }
+                        c = false;
+                    }
+                    else { count = 0; }
+                }
+            }
+        }
+        foreach (var cell in cells)
+        {
+            cell.SetRevText();
+        }
+        Debug.Log("checked:" + (pass ? " " : "not ") + "pass");
+        return pass;
     }
 
     public void Click(OthelloCell clicked)
     {
         if (state != GameState.WaitingPlayer) return;
-        int count = Check(clicked.x, clicked.y, counter.isBlack);
-        if (count > 0)
+        if (!myInfo.turn) return;
+        if (clicked.reversible.Max() != 0)
         {
             Flip(clicked.x, clicked.y, counter.isBlack);
             Core.Tell(encounterInfo.pName, string.Format("{0},{1}", clicked.x, clicked.y));
+            myInfo.ChangeTurn();
+            encounterInfo.ChangeTurn();
         }
-        Debug.Log(count);
+        Debug.Log(clicked.reversible.Max());
+    }
+    public void EncounterPass()
+    {
+        if (CheckAll(counter.isBlack))
+        {
+            Debug.Log("game set");
+            Core.Tell(encounterInfo.pName, "check");
+            WinLose();
+        }
+        myInfo.ChangeTurn();
+        encounterInfo.ChangeTurn();
+    }
+    public void WinLose()
+    {
+        if (counter.count > counter.allCount / 2)
+        {
+            WinPanel.SetActive(true);
+        }
+        else
+        {
+            LosePanel.SetActive(true);
+        }
     }
     public void EncounterClick(int x, int y)
     {
-        Debug.Log(string.Format("{0},{1}",x,y));
-        int count = Check(x, y, !counter.isBlack);
-        if (count > 0)
+        Debug.Log(string.Format("{0},{1}", x, y));
+        CheckAll(!counter.isBlack);
+        Flip(x, y, !counter.isBlack);
+        if (CheckAll(counter.isBlack))
         {
-            Flip(x, y, !counter.isBlack);
+            Core.Tell(encounterInfo.pName, "pass");
         }
-        Debug.Log(count);
+        else
+        {
+            myInfo.ChangeTurn();
+            encounterInfo.ChangeTurn();
+        }
     }
 }

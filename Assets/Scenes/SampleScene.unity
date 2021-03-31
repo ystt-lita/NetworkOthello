@@ -614,6 +614,8 @@ MonoBehaviour:
   counter: {fileID: 744514556}
   cellPrefab: {fileID: 8415428807723073473, guid: 150376860ba974a1e822555142c200cb,
     type: 3}
+  clickedx: 0
+  clickedy: 0
   state: 0
 --- !u!1 &959632844
 GameObject:

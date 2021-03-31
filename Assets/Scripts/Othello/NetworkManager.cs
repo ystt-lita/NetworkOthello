@@ -1,4 +1,4 @@
-﻿using Random=System.Random;
+﻿using Random = System.Random;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -19,11 +19,10 @@ public class NetworkManager : MonoBehaviour, WYUN.ILobbyCallback, WYUN.IRoomCall
     Random rnd;
     private void Awake()
     {
-        rnd=new Random();
+        rnd = new Random();
         Core.settings = new AppSettings("wyun_wyun_1:8929", 10008, rnd.Next(1500).ToString());
         Core.AddLobbyCallback(this);
         Core.AddRoomCallback(this);
-        Core.Connect();
     }
     public void JoinedLobby()
     {
@@ -70,11 +69,22 @@ public class NetworkManager : MonoBehaviour, WYUN.ILobbyCallback, WYUN.IRoomCall
     }
     public void MessageReceived(string message)
     {
-        string[] m=message.Split(',');
+        string[] m = message.Split(',');
         Debug.Log(m[1]);
-        board.clickedx=int.Parse(m[1]);
-        board.clickedy=int.Parse(m[2]);
-        board.state=GameState.EncounterClicked;
+        if (m[1] == "pass")
+        {
+            board.state = GameState.EncounterPassed;
+        }
+        else if (m[1] == "check")
+        {
+            board.WinLose();
+        }
+        else
+        {
+            board.clickedx = int.Parse(m[1]);
+            board.clickedy = int.Parse(m[2]);
+            board.state = GameState.EncounterClicked;
+        }
     }
     public void JoinedRoom()
     {
@@ -89,6 +99,8 @@ public class NetworkManager : MonoBehaviour, WYUN.ILobbyCallback, WYUN.IRoomCall
         MemberList memberList = JsonSerializer.Deserialize<MemberList>(list);
         if (memberList.members.Count == 2)
         {
+            Debug.Log(memberList.members[0].name);
+            Debug.Log(memberList.members[1].name);
             if (memberList.members[0].name.Equals(Core.settings.userName))
             {
                 disks.SetColor(true);
@@ -100,8 +112,9 @@ public class NetworkManager : MonoBehaviour, WYUN.ILobbyCallback, WYUN.IRoomCall
                 disks.SetColor(false);
                 encounterInfo.ChangeTurn();
                 encounterInfo.setName(memberList.members[0].name);
+                Debug.Log(memberList.members[0].name + " is host");
             }
-            board.state = GameState.Init;
+            board.state = GameState.Uninit;
         }
     }
     public void UpdatedRoomOption(string options)
@@ -112,6 +125,7 @@ public class NetworkManager : MonoBehaviour, WYUN.ILobbyCallback, WYUN.IRoomCall
     void Start()
     {
         myInfo.setName(Core.settings.userName);
+        Core.Connect();
     }
 
     // Update is called once per frame
@@ -121,6 +135,7 @@ public class NetworkManager : MonoBehaviour, WYUN.ILobbyCallback, WYUN.IRoomCall
     }
     private void OnDestroy()
     {
+        Debug.Log("NetworkManager.Destroy呼ばれた");
         Core.Exit();
     }
 }
