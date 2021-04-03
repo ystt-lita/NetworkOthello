@@ -236,7 +236,7 @@ public class OthelloGame : MonoBehaviour
                 }
             }
         }
-        for (x--; y < 8; y++)
+        for (; y < 8; y++)
         {//右の列
             count = 0; c = false;
             for (int i = y, j = x; j >= 0; j--)
@@ -315,7 +315,7 @@ public class OthelloGame : MonoBehaviour
                 }
             }
         }
-        for (y--; x >= 0; x--)
+        for (; x >= 0; x--)
         {//下の行
             count = 0; c = false;
             for (int i = y, j = x; i >= 0; i--)
@@ -394,7 +394,7 @@ public class OthelloGame : MonoBehaviour
                 }
             }
         }
-        for (x++; y >= 0; y--)
+        for (; y >= 0; y--)
         {//左の列
             count = 0; c = false;
             for (int i = y, j = x; j < 8; j++)
