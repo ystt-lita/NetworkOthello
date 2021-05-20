@@ -20,7 +20,7 @@ public class NetworkManager : MonoBehaviour, WYUN.ILobbyCallback, WYUN.IRoomCall
     private void Awake()
     {
         rnd = new Random();
-        Core.settings = new AppSettings("wyun_wyun_1:8929", 10008, rnd.Next(1500).ToString());
+        Core.settings = new AppSettings("10.16.2.200:8929", 10008, rnd.Next(1500).ToString());
         Core.AddLobbyCallback(this);
         Core.AddRoomCallback(this);
     }
